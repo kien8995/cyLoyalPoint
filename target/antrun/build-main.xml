@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project name="maven-antrun-" default="main"  >
+<target name="main">
+  <copy file="/Users/trankien/JavaProjects/cyLoyalPoint/target/cyLoyalPoint-1.0.jar" todir="/Users/trankien/CytoscapeConfiguration/3/apps/installed"/>
+</target>
+</project>
