@@ -27,7 +27,7 @@ public class LoyalPoint2 {
 		initialize();
 	}
 
-	public void initialize() {
+	private void initialize() {
 		int maxOutDegMixing = 0;
 		for (int node = 0; node < nodeCount; node++) {
 			int sum = getNumberOfAdjacent(outDirectedAdjacentList, node)
@@ -57,7 +57,7 @@ public class LoyalPoint2 {
 
 		// init
 		for (int i = 0; i < result.length; i++) {
-			result[i] = 2.0f;
+			result[i] = Float.MIN_VALUE;
 		}
 
 		int againstLeader = nodeCount;
@@ -74,7 +74,7 @@ public class LoyalPoint2 {
 
 		Map<Integer, Float> ans = new HashMap<>();
 		for (int i = 0; i < result.length; i++) {
-			if (result[i] != 2.0f) {
+			if (result[i] != Float.MIN_VALUE) {
 				ans.put(i, result[i]);
 			}
 		}
