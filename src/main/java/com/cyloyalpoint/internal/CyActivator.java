@@ -1,6 +1,8 @@
 package com.cyloyalpoint.internal;
 
 import java.util.Properties;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.cytoscape.service.util.AbstractCyActivator;
 import org.cytoscape.task.NetworkTaskFactory;
@@ -18,10 +20,9 @@ import org.osgi.framework.BundleContext;
  * import a service by asking OSGi for an implementation. The implementation is
  * provided by some other bundle.
  * 
- * When OSGi starts your bundle, it will invoke {@CyActivator}'s
- * {@code start} method. So, the {@code start} method is where
- * you put in all your code that sets up your app. This is where you import and
- * export services.
+ * When OSGi starts your bundle, it will invoke {@CyActivator}'s {@code start}
+ * method. So, the {@code start} method is where you put in all your code that
+ * sets up your app. This is where you import and export services.
  * 
  * Your bundle's {@code Bundle-Activator} manifest entry has a fully-qualified
  * path to this class. It's not necessary to inherit from
@@ -40,9 +41,17 @@ public class CyActivator extends AbstractCyActivator {
 	 */
 	@Override
 	public void start(BundleContext context) throws Exception {
-		Properties properties = new Properties();
-    	properties.put(ServiceProperties.PREFERRED_MENU, ServiceProperties.APPS_MENU);
-    	properties.put(ServiceProperties.TITLE, "cyLoyalPoint");
-		registerService(context, new LoyalPointTaskFactory(), NetworkTaskFactory.class, properties);
+		// Start plug-in in separate thread
+		final ExecutorService service = Executors.newSingleThreadExecutor();
+		service.submit(() -> {
+			try {
+				Properties properties = new Properties();
+				properties.put(ServiceProperties.PREFERRED_MENU, ServiceProperties.APPS_MENU);
+				properties.put(ServiceProperties.TITLE, "cyLoyalPoint");
+				registerService(context, new LoyalPointTaskFactory(), NetworkTaskFactory.class, properties);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		});
 	}
 }

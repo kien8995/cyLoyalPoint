@@ -20,6 +20,7 @@ import org.cytoscape.model.CyTable;
 import com.cyloyalpoint.algorithm.LoyalPoint;
 import com.cyloyalpoint.algorithm.LoyalPoint2;
 import com.cyloyalpoint.algorithm.ParallelLoyalPoint;
+import com.cyloyalpoint.algorithm.ParallelLoyalPoint2;
 
 public class View extends JFrame {
 	/**
@@ -58,44 +59,55 @@ public class View extends JFrame {
 		this.setVisible(true);
 		this.setLocationRelativeTo(null);
 		this.setAlwaysOnTop(false);
+		this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
 		List<CyNode> nodes = network.getNodeList();
 		CyTable nodeTable = network.getDefaultNodeTable();
 
-		// LoyalPoint lp = new LoyalPoint(network);
-		//
-		// b.addActionListener(new ActionListener() {
-		// public void actionPerformed(ActionEvent e) {
-		// b.setText("Computing...");
-		// b.setEnabled(false);
-		//
-		// String columnName = "Sum Loyal Point";
-		// if (nodeTable.getColumn(columnName) == null) {
-		// nodeTable.createColumn(columnName, Double.class, false);
-		// }
-		//
-		// String s = "";
-		// for (CyNode node : nodes) {
-		// Map<String, Float> result = lp
-		// .computeLoyalNodesOfLeader(network.getRow(node).get("name", String.class));
-		// s += (network.getRow(node).get("name", String.class) + "'s supporter:\n");
-		//
-		// double sum = 0.0;
-		// for (String loyalNode : result.keySet()) {
-		// s += (loyalNode + "\t" + result.get(loyalNode) + "\n");
-		// sum += result.get(loyalNode);
-		// }
-		// network.getRow(node).set(columnName, sum);
-		//
-		// area.setText(s);
-		// }
-		//
-		// b.setText("Compute");
-		// b.setEnabled(true);
-		// }
-		// });
+		LoyalPoint lp = new LoyalPoint(network);
 
-		LoyalPoint2 lp = new LoyalPoint2(network);
+		b.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				b.setText("Computing...");
+				b.setEnabled(false);
+
+				String columnName = "Sum Loyal Point";
+				if (nodeTable.getColumn(columnName) == null) {
+					nodeTable.createColumn(columnName, Double.class, false);
+				}
+
+				String s = "";
+				for (CyNode node : nodes) {
+					Map<String, Float> result = lp
+							.computeLoyalNodesOfLeader(network.getRow(node).get("name", String.class));
+					s += (network.getRow(node).get("name", String.class) + "'s supporter:\n");
+
+					double sum = 0.0;
+					for (String loyalNode : result.keySet()) {
+						s += (loyalNode + "\t" + result.get(loyalNode) + "\n");
+						sum += result.get(loyalNode);
+					}
+					network.getRow(node).set(columnName, sum);
+
+					area.setText(s);
+				}
+
+				b.setText("Compute");
+				b.setEnabled(true);
+			}
+		});
+
+		//
+		// ParallelLoyalPoint2 pp = new ParallelLoyalPoint2(network);
+		// int[] xx = pp.run();
+		// String ss = "";
+		// area.setText(ss);
+		// for (int i = 0; i < xx.length; i++) {
+		// ss += xx[i] + " - \n";
+		// area.setText(ss);
+		// }
+
+		ParallelLoyalPoint plp = new ParallelLoyalPoint(network);
 		Map<CyNode, Integer> nodeIndexes = new HashMap<>();
 		Map<Integer, CyNode> indexNodes = new HashMap<>();
 		int nodeIndex = 0;
@@ -116,7 +128,7 @@ public class View extends JFrame {
 
 				String s = "";
 				for (CyNode node : nodes) {
-					Map<Integer, Float> result = lp.compute(nodeIndexes.get(node));
+					Map<Integer, Float> result = plp.compute(nodeIndexes.get(node));
 					s += (network.getRow(node).get("name", String.class) + "'s supporter:\n");
 
 					double sum = 0.0;
@@ -128,12 +140,13 @@ public class View extends JFrame {
 					network.getRow(node).set(columnName, sum);
 
 					area.setText(s);
+					
+					break;
 				}
 
 				bTest.setText("TEST");
 				bTest.setEnabled(true);
 			}
 		});
-
 	}
 }

@@ -25,4 +25,14 @@ public class MathUtil {
 		}
 		return ret;
 	}
+
+	public static float maxValue(float[] array) {
+		float max = Float.MIN_VALUE;
+		for (int i = 0; i < array.length; i++) {
+			if (array[i] > max) {
+				max = array[i];
+			}
+		}
+		return max;
+	}
 }

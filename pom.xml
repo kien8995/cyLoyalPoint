@@ -13,8 +13,8 @@
 		as properties. -->
 	<properties>
 		<cytoscape.api.version>3.3.0</cytoscape.api.version>
-		<maven-compiler-plugin.version>2.0.2</maven-compiler-plugin.version>
-		<maven-bundle-plugin.version>2.3.4</maven-bundle-plugin.version>
+		<maven-compiler-plugin.version>3.3</maven-compiler-plugin.version>
+		<maven-bundle-plugin.version>2.5.4</maven-bundle-plugin.version>
 		<osgi.api.version>4.2.0</osgi.api.version>
 	</properties>
 

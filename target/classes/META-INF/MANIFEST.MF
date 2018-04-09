@@ -1,22 +1,22 @@
 Manifest-Version: 1.0
-Bundle-Description: cyLoyalPoint
-Bundle-SymbolicName: your.org.MyApp
-Built-By: trankien
-Bundle-ManifestVersion: 2
-Bnd-LastModified: 1522943299656
-Import-Package: com.cyloyalpoint.view,javax.swing,org.cytoscape.model;
- version="[3.3,4)",org.cytoscape.opencl.cycl;version="[3.5,4)",org.cyt
- oscape.service.util;version="[3.3,4)",org.cytoscape.task;version="[3.
- 3,4)",org.cytoscape.work;version="[3.3,4)",org.osgi.framework;version
- ="[1.5,2)"
-Tool: Bnd-1.15.0
-Export-Package: com.cyloyalpoint.util;uses:="org.cytoscape.model",com.
- cyloyalpoint.algorithm;uses:="org.cytoscape.model,com.cyloyalpoint.ut
- il,org.cytoscape.opencl.cycl",com.cyloyalpoint.view;uses:="org.cytosc
- ape.model,com.cyloyalpoint.algorithm,javax.swing"
-Bundle-Name: cyLoyalPoint
-Bundle-Version: 1.0
-Bundle-Activator: com.cyloyalpoint.internal.CyActivator
-Created-By: Apache Maven Bundle Plugin
+Bnd-LastModified: 1523264454500
 Build-Jdk: 1.8.0_121
-
+Built-By: trankien
+Bundle-Activator: com.cyloyalpoint.internal.CyActivator
+Bundle-Description: cyLoyalPoint
+Bundle-ManifestVersion: 2
+Bundle-Name: cyLoyalPoint
+Bundle-SymbolicName: your.org.MyApp
+Bundle-Version: 1.0
+Created-By: Apache Maven Bundle Plugin
+Export-Package: com.cyloyalpoint.util;version="1.0.0";uses:="org.cytosca
+ pe.model",com.cyloyalpoint.algorithm;version="1.0.0";uses:="org.cytosca
+ pe.model",com.cyloyalpoint.view;version="1.0.0";uses:="javax.swing,org.
+ cytoscape.model"
+Import-Package: com.cyloyalpoint.view;version="[1.0,2)",javax.swing,org.
+ cytoscape.model;version="[3.3,4)",org.cytoscape.opencl.cycl;version="[3
+ .5,4)",org.cytoscape.service.util;version="[3.3,4)",org.cytoscape.task;
+ version="[3.3,4)",org.cytoscape.work,org.osgi.framework;version="[1.5,2
+ )"
+Require-Capability: osgi.ee;filter:="(&(osgi.ee=JavaSE)(version=1.8))"
+Tool: Bnd-2.4.1.201501161923

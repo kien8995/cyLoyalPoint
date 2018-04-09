@@ -52,7 +52,7 @@ public class NetworkUtil {
 
 		Integer[] adjKey = inDirectedAdjacentList.keySet().toArray(new Integer[inDirectedAdjacentList.keySet().size()]);
 		if (adjKey.length == 0)
-			return null;
+			return new int[] {-1};
 
 		int nNode = nodes.size();
 		int arraySize = nNode + 1 + nAdjNode;
@@ -105,7 +105,7 @@ public class NetworkUtil {
 		Integer[] adjKey = outDirectedAdjacentList.keySet()
 				.toArray(new Integer[outDirectedAdjacentList.keySet().size()]);
 		if (adjKey.length == 0)
-			return null;
+			return new int[] {-1};
 
 		int nNode = nodes.size();
 		int arraySize = nNode + 1 + nAdjNode;
@@ -163,7 +163,7 @@ public class NetworkUtil {
 
 		Integer[] adjKey = unDirectedAdjacentList.keySet().toArray(new Integer[unDirectedAdjacentList.keySet().size()]);
 		if (adjKey.length == 0)
-			return null;
+			return new int[] {-1};
 
 		int nNode = nodes.size();
 		int arraySize = nNode + 1 + nAdjNode;
