@@ -1,5 +1,5 @@
 Manifest-Version: 1.0
-Bnd-LastModified: 1523264454500
+Bnd-LastModified: 1523353944636
 Build-Jdk: 1.8.0_121
 Built-By: trankien
 Bundle-Activator: com.cyloyalpoint.internal.CyActivator

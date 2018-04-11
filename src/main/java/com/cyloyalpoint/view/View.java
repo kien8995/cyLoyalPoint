@@ -90,6 +90,8 @@ public class View extends JFrame {
 					network.getRow(node).set(columnName, sum);
 
 					area.setText(s);
+					
+					break;
 				}
 
 				b.setText("Compute");

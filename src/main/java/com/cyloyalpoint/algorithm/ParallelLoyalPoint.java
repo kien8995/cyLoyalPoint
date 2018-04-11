@@ -26,11 +26,11 @@ public class ParallelLoyalPoint {
 			throw new RuntimeException("No OpenCL devices found, cannot run program.");
 		}
 
-		String[] kernelNames = new String[] { "Init", "ComputeSums", "ComputeLoyalPoint" };
+		String[] kernelNames = new String[] { "ComputeSums", "ComputeLoyalPoint" };
 
 		CyCLProgram tryProgram;
 		try {
-			tryProgram = device.forceAddProgram("LoyalPoint", getClass().getResource("/LoyalPoint.cl"), kernelNames,
+			tryProgram = device.forceAddProgram("LoyalPoint", getClass().getResource("/LoyalPoint1.cl"), kernelNames,
 					null, false);
 		} catch (Exception exc) {
 			throw new RuntimeException("Could not load and compile OpenCL program.");
@@ -79,8 +79,8 @@ public class ParallelLoyalPoint {
 
 	private class LoyalPoint {
 
-		private final float EPS = 1e-7f;
-		private final int MAX_ITERATION = 1000;
+		private final float EPS = 1e-3f;
+		private final int MAX_ITERATION = 200;
 		private int nodeCount;
 		private float E;
 		private int[] unDirectedAdjacentList;

@@ -1,11 +1,3 @@
-#define EPS 1e-7f
-
-__kernel void Init(__global int* a, __global int* b, __global int* c)
-{
-    int id = get_global_id(0);
-    c[id] = a[id] + b[id];
-}
-
 __kernel void ComputeSums(__global const int* inDirectedAdjacentList,
                           __global const int* unDirectedAdjacentList,
                           __global float* loyalPoint,
@@ -70,27 +62,4 @@ __kernel void ComputeLoyalPoint(__global float* loyalPoint,
     
     errors[currentNode] = fabs(newLoyalPoint - oldLoyalPoint) > errors[currentNode] ? fabs(newLoyalPoint - oldLoyalPoint) : errors[currentNode];
     loyalPoint[currentNode] = newLoyalPoint;
-}
-
-__kernel void ComputeLoyalNodesOfLeader(__global const int* inDirectedAdjacentList,
-                                        __global const int* unDirectedAdjacentList,
-                                        __global const int* normalNodes,
-                                        __global float* result,
-                                        int leader,
-                                        int againstLeader,
-                                        int nodeCount,
-                                        float E,
-                                        int n)
-{
-    int currentThreadId = get_global_id(0);
-    
-    if (currentThreadId >= n) {
-        return;
-    }
-    
-    int targetNode = normalNodes[currentThreadId];
-    
-    ///
-    
-    ///
 }
