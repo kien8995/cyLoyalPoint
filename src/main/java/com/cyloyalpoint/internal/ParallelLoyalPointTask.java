@@ -77,6 +77,7 @@ public class ParallelLoyalPointTask extends AbstractTask implements ObservableTa
 			long startTimeNode = System.currentTimeMillis();
 
 			lines.add(network.getRow(node).get("name", String.class) + "'s supporter:");
+			
 			Map<Integer, Float> result = plp.compute(nodeIndexes.get(node));
 			Map<Integer, Float> sortedResult = MapUtil.sortIntegerFloatMapByValue(result, false);
 			

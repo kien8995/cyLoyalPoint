@@ -27,5 +27,6 @@ public class ExitPluginAction extends AbstractCyAction {
 		for (Map.Entry<Object, Class<?>> entry : App.services.entrySet()) {
 			cyServiceRegistrar.unregisterService(entry.getKey(), entry.getValue());
 		}
+		App.services.clear();
 	}
 }

@@ -4,10 +4,13 @@ com/cyloyalpoint/algorithm/ParallelLoyalPoint2$LoyalPoint.class
 com/cyloyalpoint/internal/ExitPluginAction.class
 com/cyloyalpoint/util/NetworkUtil.class
 com/cyloyalpoint/internal/LoyalPointPanel$SaveFile.class
+com/cyloyalpoint/view/HelloWorldApplication.class
 com/cyloyalpoint/internal/LoyalPointPanel$RadioButtonParallelListener.class
+com/cyloyalpoint/internal/AboutTask$1.class
 com/cyloyalpoint/internal/LoyalPointTask.class
 com/cyloyalpoint/algorithm/ParallelLoyalPoint2.class
 com/cyloyalpoint/internal/CyActivator.class
+com/cyloyalpoint/util/ImageUtil.class
 com/cyloyalpoint/view/View$2.class
 com/cyloyalpoint/internal/LoyalPointPanel.class
 com/cyloyalpoint/view/View.class
