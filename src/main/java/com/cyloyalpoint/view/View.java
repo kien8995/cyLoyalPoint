@@ -18,8 +18,6 @@ import org.cytoscape.model.CyNode;
 import org.cytoscape.model.CyTable;
 
 import com.cyloyalpoint.algorithm.LoyalPoint;
-import com.cyloyalpoint.algorithm.LoyalPoint2;
-import com.cyloyalpoint.algorithm.ParallelLoyalPoint;
 import com.cyloyalpoint.algorithm.ParallelLoyalPoint2;
 
 public class View extends JFrame {
@@ -109,7 +107,7 @@ public class View extends JFrame {
 		// area.setText(ss);
 		// }
 
-		ParallelLoyalPoint plp = new ParallelLoyalPoint(network);
+		ParallelLoyalPoint2 plp = new ParallelLoyalPoint2(network);
 		Map<CyNode, Integer> nodeIndexes = new HashMap<>();
 		Map<Integer, CyNode> indexNodes = new HashMap<>();
 		int nodeIndex = 0;
@@ -117,7 +115,7 @@ public class View extends JFrame {
 			indexNodes.put(nodeIndex, node);
 			nodeIndexes.put(node, nodeIndex++);
 		}
-
+		
 		bTest.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				bTest.setText("Computing...");

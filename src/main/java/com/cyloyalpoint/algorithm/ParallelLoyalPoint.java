@@ -30,7 +30,7 @@ public class ParallelLoyalPoint {
 
 		CyCLProgram tryProgram;
 		try {
-			tryProgram = device.forceAddProgram("LoyalPoint", getClass().getResource("/LoyalPoint1.cl"), kernelNames,
+			tryProgram = device.forceAddProgram("LoyalPoint1", getClass().getResource("/LoyalPoint1.cl"), kernelNames,
 					null, false);
 		} catch (Exception exc) {
 			throw new RuntimeException("Could not load and compile OpenCL program.");
@@ -39,7 +39,7 @@ public class ParallelLoyalPoint {
 
 		this.network = network;
 	}
-	
+
 	public String getDeviceInfo() {
 		String info = "";
 		info += "Address Bits: " + device.addressBits + "\n";
@@ -188,7 +188,7 @@ public class ParallelLoyalPoint {
 
 				float maxError = Float.MAX_VALUE;
 
-				for (int iter = 1; iter <= MAX_ITERATION && maxError >= EPS; iter++) {
+				for (int iter = 0; iter < MAX_ITERATION && maxError > EPS; iter++) {
 
 					program.getKernel("ComputeSums").execute(new long[] { nodeCount + 1 }, null,
 							bufferInDirectedAdjacentList, bufferUnDirectedAdjacentList, bufferLoyalPoint, bufferSums,

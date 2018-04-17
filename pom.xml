@@ -8,23 +8,16 @@
 	<name>cyLoyalPoint</name>
 	<description>cyLoyalPoint</description>
 
-	<!-- Properties are variables that can be referenced throughout the pom.xml 
-		file. When the pom.xml file has repeated elements, it's best to use them 
-		as properties. -->
 	<properties>
 		<cytoscape.api.version>3.3.0</cytoscape.api.version>
-		<maven-compiler-plugin.version>3.3</maven-compiler-plugin.version>
+		<cytoscape.opencl.version>3.5.0</cytoscape.opencl.version>
+		<maven-compiler-plugin.version>3.7.0</maven-compiler-plugin.version>
 		<maven-bundle-plugin.version>2.5.4</maven-bundle-plugin.version>
 		<osgi.api.version>4.2.0</osgi.api.version>
 	</properties>
 
-	<!-- "packaging" tells Maven what sort of thing you want to build. If we 
-		were building a plain, old JAR, we'd put in "jar" here. However, we're building 
-		an OSGi bundle JAR, so we've put "bundle" here. -->
 	<packaging>bundle</packaging>
 
-	<!-- This section tells Maven how the build is configured. Maven has numerous 
-		plugins that control very specific phases of the build. -->
 	<build>
 		<plugins>
 			<!-- The maven-compiler-plugin configures the Java compiler Maven uses 
@@ -34,8 +27,6 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>${maven-compiler-plugin.version}</version>
 				<configuration>
-					<!-- These options indicate the source code is Java 1.7-compliant and 
-						the resulting class files should be Java 1.7-compatible. -->
 					<source>1.8</source>
 					<target>1.8</target>
 				</configuration>
@@ -81,6 +72,13 @@
 					</execution>
 				</executions>
 			</plugin>
+
+			<!-- <plugin> <artifactId>maven-assembly-plugin</artifactId> <configuration> 
+				<archive> <manifest> <mainClass>com.cyloyalpoint.internal.CyActivator</mainClass> 
+				</manifest> </archive> <descriptorRefs> <descriptorRef>jar-with-dependencies</descriptorRef> 
+				</descriptorRefs> </configuration> <executions> <execution> <id>make-assembly</id> 
+				<phase>package</phase> <goals> <goal>single</goal> </goals> </execution> 
+				</executions> </plugin> -->
 		</plugins>
 	</build>
 
@@ -111,11 +109,6 @@
 		</repository>
 	</repositories>
 
-	<!-- Our app depends on other OSGi bundle JARs. We list all the JARs we 
-		depend on here. Just like our own Maven project, these dependencies are uniquely 
-		identified by groupId, artifactId, and version. Dependencies do not necessarily 
-		have to be OSGi bundles. They can be regular JAR files, in which case they 
-		must be inlined or embedded into this bundle. -->
 	<dependencies>
 		<dependency>
 			<groupId>org.cytoscape</groupId>
@@ -134,7 +127,17 @@
 		</dependency>
 		<dependency>
 			<groupId>org.cytoscape</groupId>
+			<artifactId>swing-util-api</artifactId>
+			<version>${cytoscape.api.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.cytoscape</groupId>
 			<artifactId>model-api</artifactId>
+			<version>${cytoscape.api.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.cytoscape</groupId>
+			<artifactId>layout-api</artifactId>
 			<version>${cytoscape.api.version}</version>
 		</dependency>
 		<dependency>
@@ -165,14 +168,19 @@
 		<dependency>
 			<groupId>org.cytoscape</groupId>
 			<artifactId>opencl-cycl</artifactId>
-			<version>3.5.0</version>
+			<version>${cytoscape.opencl.version}</version>
 		</dependency>
-
 		<!-- OSGi core API -->
 		<dependency>
 			<groupId>org.osgi</groupId>
 			<artifactId>org.osgi.core</artifactId>
 			<version>${osgi.api.version}</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.1</version>
 		</dependency>
 	</dependencies>
 </project>

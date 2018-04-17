@@ -9,6 +9,7 @@ import org.cytoscape.opencl.cycl.CyCLBuffer;
 import org.cytoscape.opencl.cycl.CyCLDevice;
 import org.cytoscape.opencl.cycl.CyCLProgram;
 
+import com.cyloyalpoint.util.MathUtil;
 import com.cyloyalpoint.util.NetworkUtil;
 
 public class ParallelLoyalPoint2 {
@@ -17,6 +18,9 @@ public class ParallelLoyalPoint2 {
 	private final CyCLProgram program;
 
 	private CyNetwork network;
+
+	private final long GLOBAL_WORK_SIZE;
+	private final long LOCAL_WORK_SIZE;
 
 	public ParallelLoyalPoint2(CyNetwork network) {
 		try {
@@ -36,13 +40,15 @@ public class ParallelLoyalPoint2 {
 		}
 		this.program = tryProgram;
 
+		this.GLOBAL_WORK_SIZE = device.bestWarpSize * device.computeUnits;
+		this.LOCAL_WORK_SIZE = device.bestWarpSize;
+
 		this.network = network;
 	}
 
 	public String getDeviceInfo() {
 		String info = "";
 		info += "Address Bits: " + device.addressBits + "\n";
-		info += "Benchmark Score: " + device.benchmarkScore + "\n";
 		info += "Best Block Size: " + device.bestBlockSize + "\n";
 		info += "Best Warp Size: " + device.bestWarpSize + "\n";
 		info += "Clock Frequency: " + device.clockFrequency + "\n";
@@ -85,7 +91,8 @@ public class ParallelLoyalPoint2 {
 		private int[] inDirectedAdjacentList;
 		private int[] normalNode;
 		private float[] loyalPoint;
-		private float[] result;
+		private int[] resultIndex;
+		private float[] resultValue;
 
 		// CyBuffers
 		private CyCLBuffer bufferUnDirectedAdjacentList;
@@ -93,7 +100,8 @@ public class ParallelLoyalPoint2 {
 		private CyCLBuffer bufferOutDirectedAdjacentList;
 		private CyCLBuffer bufferNormalNode;
 		private CyCLBuffer bufferLoyalPoint;
-		private CyCLBuffer bufferResult;
+		private CyCLBuffer bufferResultIndex;
+		private CyCLBuffer bufferResultValue;
 
 		private boolean buffersInitialized = false;
 
@@ -104,15 +112,11 @@ public class ParallelLoyalPoint2 {
 			this.outDirectedAdjacentList = NetworkUtil.extractNetworkOutDirectedAdjacentList(network);
 			this.unDirectedAdjacentList = NetworkUtil.extractNetworkUnDirectedAdjacentList(network);
 
-			this.normalNode = new int[nodeCount - 1];
-			this.loyalPoint = new float[(nodeCount * nodeCount)];
-			this.result = new float[nodeCount + 1];
-
 			initialize();
 		}
 
 		private void initialize() {
-			int maxOutDegMixing = 0;
+			int maxOutDegMixing = Integer.MIN_VALUE;
 			for (int node = 0; node < nodeCount; node++) {
 				int sum = getNumberOfAdjacent(outDirectedAdjacentList, node)
 						+ getNumberOfAdjacent(unDirectedAdjacentList, node);
@@ -138,7 +142,8 @@ public class ParallelLoyalPoint2 {
 			bufferUnDirectedAdjacentList = device.createBuffer(unDirectedAdjacentList);
 			bufferNormalNode = device.createBuffer(normalNode);
 			bufferLoyalPoint = device.createBuffer(loyalPoint);
-			bufferResult = device.createBuffer(result);
+			bufferResultIndex = device.createBuffer(resultIndex);
+			bufferResultValue = device.createBuffer(resultValue);
 
 			buffersInitialized = true;
 		}
@@ -153,43 +158,60 @@ public class ParallelLoyalPoint2 {
 			bufferUnDirectedAdjacentList.free();
 			bufferNormalNode.free();
 			bufferLoyalPoint.free();
-			bufferResult.free();
+			bufferResultIndex.free();
+			bufferResultValue.free();
 
 			buffersInitialized = false;
 		}
 
 		public Map<Integer, Float> compute(int leader) {
 
+			Map<Integer, Float> ans = new HashMap<>();
+
 			int againstLeader = nodeCount;
 
+			normalNode = new int[nodeCount - 1];
 			int normalNodeIndex = 0;
 			for (int node = 0; node < nodeCount; node++) {
 				if (node != leader) {
 					normalNode[normalNodeIndex++] = node;
-				}	
-			}
-
-			initializeBuffers();
-			
-			program.getKernel("InitLoyalPoint").execute(new long[] { (nodeCount * nodeCount) }, null, bufferLoyalPoint);
-			
-			program.getKernel("InitResult").execute(new long[] { nodeCount + 1 }, null, bufferResult);
-
-			program.getKernel("ComputeLoyalNodesOfLeader").execute(new long[] { nodeCount - 1 }, null,
-					bufferInDirectedAdjacentList, bufferUnDirectedAdjacentList, bufferNormalNode, bufferLoyalPoint,
-					bufferResult, leader, againstLeader, nodeCount, E, nodeCount - 1);
-
-			bufferResult.getFromDevice(result);
-
-			Map<Integer, Float> ans = new HashMap<>();
-			
-			for (int node = 0; node < result.length; node++) {
-				if (result[node] != -2.0f) {
-					ans.put(node, result[node]);
 				}
 			}
 
-			freeBuffers();
+			int[][] chunks = MathUtil.splitArray(normalNode, (int) GLOBAL_WORK_SIZE);
+
+			for (int[] chunk : chunks) {
+
+				loyalPoint = new float[(nodeCount + 1) * chunk.length];
+				resultIndex = new int[chunk.length];
+				resultValue = new float[chunk.length];
+
+				normalNode = chunk;
+
+				initializeBuffers();
+
+				program.getKernel("InitLoyalPoint").execute(new long[] { (nodeCount + 1) * chunk.length }, null,
+						bufferLoyalPoint);
+
+				program.getKernel("InitResult").execute(new long[] { (nodeCount + 1) }, null, bufferResultIndex,
+						bufferResultValue);
+
+				program.getKernel("ComputeLoyalNodesOfLeader").execute(new long[] { GLOBAL_WORK_SIZE },
+						new long[] { LOCAL_WORK_SIZE }, bufferInDirectedAdjacentList, bufferUnDirectedAdjacentList,
+						bufferNormalNode, bufferLoyalPoint, bufferResultIndex, bufferResultValue, leader, againstLeader,
+						nodeCount, E, chunk.length);
+
+				bufferResultIndex.getFromDevice(resultIndex);
+				bufferResultValue.getFromDevice(resultValue);
+
+				for (int index = 0; index < chunk.length; index++) {
+					if (resultValue[index] != -9999.0f) {
+						ans.put(resultIndex[index], resultValue[index]);
+					}
+				}
+
+				freeBuffers();
+			}
 
 			return ans;
 		}

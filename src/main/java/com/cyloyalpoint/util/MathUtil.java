@@ -1,9 +1,15 @@
 package com.cyloyalpoint.util;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
 public class MathUtil {
+	
+	private MathUtil() {
+		throw new IllegalStateException("Utility class");
+	}
+
 	public static int randomInRange(int min, int max) {
 		Random r = new Random();
 		return r.nextInt((max + 1) - min) + min;
@@ -34,5 +40,25 @@ public class MathUtil {
 			}
 		}
 		return max;
+	}
+
+	public static int[][] splitArray(int[] arrayToSplit, int chunkSize) {
+		if (chunkSize <= 0) {
+			return new int[][] {};
+		}
+		int rest = arrayToSplit.length % chunkSize;
+
+		int chunks = arrayToSplit.length / chunkSize + (rest > 0 ? 1 : 0);
+
+		int[][] arrays = new int[chunks][];
+
+		for (int i = 0; i < (rest > 0 ? chunks - 1 : chunks); i++) {
+			arrays[i] = Arrays.copyOfRange(arrayToSplit, i * chunkSize, i * chunkSize + chunkSize);
+		}
+		if (rest > 0) {
+			arrays[chunks - 1] = Arrays.copyOfRange(arrayToSplit, (chunks - 1) * chunkSize,
+					(chunks - 1) * chunkSize + rest);
+		}
+		return arrays;
 	}
 }
