@@ -15,6 +15,7 @@ com/cyloyalpoint/internal/LoyalPointPanel$LoyalPointTaskObserver.class
 com/cyloyalpoint/algorithm/ParallelLoyalPoint$LoyalPoint.class
 com/cyloyalpoint/internal/AboutTask.class
 com/cyloyalpoint/algorithm/ParallelLoyalPoint.class
+com/cyloyalpoint/internal/App.class
 com/cyloyalpoint/internal/LoyalPointPanel$RadioButtonSequenceListener.class
 com/cyloyalpoint/internal/LoyalPointPanel$1.class
 com/cyloyalpoint/internal/LoyalPointPanel$ButtonExecuteListener.class

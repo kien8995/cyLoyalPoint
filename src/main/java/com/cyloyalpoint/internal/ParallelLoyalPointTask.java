@@ -102,7 +102,7 @@ public class ParallelLoyalPointTask extends AbstractTask implements ObservableTa
 					+ "Remaining Time: " + StringUtil.getDurationBreakdown(remainingTime));
 			taskMonitor.setProgress(percent);
 
-			// break;
+//			 break;
 		}
 
 		long endTime = System.currentTimeMillis();

@@ -1,9 +1,9 @@
 package com.cyloyalpoint.internal;
 
 import java.awt.event.ActionEvent;
+import java.util.Map;
 
 import org.cytoscape.application.swing.AbstractCyAction;
-import org.cytoscape.application.swing.CytoPanelComponent;
 import org.cytoscape.service.util.CyServiceRegistrar;
 
 public class ExitPluginAction extends AbstractCyAction {
@@ -24,6 +24,8 @@ public class ExitPluginAction extends AbstractCyAction {
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		cyServiceRegistrar.unregisterService(cyServiceRegistrar.getService(LoyalPointPanel.class), CytoPanelComponent.class);
+		for (Map.Entry<Object, Class<?>> entry : App.services.entrySet()) {
+			cyServiceRegistrar.unregisterService(entry.getKey(), entry.getValue());
+		}
 	}
 }

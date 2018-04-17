@@ -39,6 +39,8 @@ public class LoyalPointPanelAction extends AbstractCyAction {
 	public void actionPerformed(ActionEvent e) {
 		cyServiceRegistrar.registerService(loyalPointPanel, CytoPanelComponent.class, new Properties());
 
+		App.services.put(loyalPointPanel, CytoPanelComponent.class);
+		
 		if (cytoPanelSouth.getState() == CytoPanelState.HIDE) {
 			cytoPanelSouth.setState(CytoPanelState.DOCK);
 		}
