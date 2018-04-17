@@ -5,6 +5,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
@@ -196,7 +197,7 @@ public class LoyalPointPanel extends JPanel implements CytoPanelComponent {
 			if (rVal == JFileChooser.APPROVE_OPTION) {
 				folderName = c.getCurrentDirectory().toString();
 				fileName = c.getSelectedFile().getName();
-				tfSaveFile.setText(folderName);
+				tfSaveFile.setText(new File(new File(folderName), fileName).getAbsolutePath());
 			}
 			if (rVal == JFileChooser.CANCEL_OPTION) {
 				folderName = null;
