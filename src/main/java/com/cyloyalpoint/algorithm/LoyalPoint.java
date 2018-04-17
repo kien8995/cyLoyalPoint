@@ -77,7 +77,7 @@ public class LoyalPoint {
 			unDirectedAdjacentList.get(node).add(againstLeader);
 
 			Map<String, Float> result = computeCompetitive(leader, againstLeader);
-			loyalNodesOfLeader.put(node, result.get(node));
+			loyalNodesOfLeader.put(node, MathUtil.zero(result.get(node), EPS));
 
 			unDirectedAdjacentList.get(node).remove(againstLeader);
 		}

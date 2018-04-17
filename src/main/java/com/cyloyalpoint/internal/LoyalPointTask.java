@@ -16,6 +16,7 @@ import org.cytoscape.work.ObservableTask;
 import org.cytoscape.work.TaskMonitor;
 
 import com.cyloyalpoint.algorithm.LoyalPoint;
+import com.cyloyalpoint.util.MapUtil;
 import com.cyloyalpoint.util.StringUtil;
 
 public class LoyalPointTask extends AbstractTask implements ObservableTask {
@@ -67,13 +68,15 @@ public class LoyalPointTask extends AbstractTask implements ObservableTask {
 
 			long startTimeNode = System.currentTimeMillis();
 
-			Map<String, Float> result = lp.computeLoyalNodesOfLeader(network.getRow(node).get("name", String.class));
 			lines.add(network.getRow(node).get("name", String.class) + "'s supporter:");
 
+			Map<String, Float> result = lp.computeLoyalNodesOfLeader(network.getRow(node).get("name", String.class));
+			Map<String, Float> sortedResult = MapUtil.sortStringFloatMapByValue(result, false);
+
 			double sum = 0.0;
-			for (Map.Entry<String, Float> entry : result.entrySet()) {
-				lines.add(entry.getKey() + "\t" + result.get(entry.getKey()));
-				sum += result.get(entry.getKey());
+			for (Map.Entry<String, Float> entry : sortedResult.entrySet()) {
+				lines.add(entry.getKey() + "\t" + sortedResult.get(entry.getKey()));
+				sum += sortedResult.get(entry.getKey());
 			}
 			network.getRow(node).set(columnName, sum);
 

@@ -23,6 +23,7 @@ com/cyloyalpoint/collection/Pair.class
 com/cyloyalpoint/internal/AboutTaskFactory.class
 com/cyloyalpoint/internal/ParallelLoyalPointTask.class
 com/cyloyalpoint/util/MathUtil.class
+com/cyloyalpoint/util/MapUtil.class
 com/cyloyalpoint/internal/CyServices.class
 com/cyloyalpoint/algorithm/LoyalPoint.class
 com/cyloyalpoint/algorithm/LoyalPoint2.class
