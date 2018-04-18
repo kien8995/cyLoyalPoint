@@ -1,5 +1,5 @@
-#define EPS 1e-5f
-#define MAX_ITERATION 500
+// OpenCL program
+// Author: Kien Tran Dong
 
 inline int GetIndex(int size, int threadId, int index);
 inline float ComputeSum(__global const int* inDirectedAdjacentList,
@@ -34,6 +34,8 @@ __kernel void ComputeLoyalNodesOfLeader(__global const int* inDirectedAdjacentLi
 		int againstLeader,
 		int nodeCount,
 		float E,
+		float EPS,
+		int MAX_ITERATION,
 		int n)
 {
 	int currentThreadId = get_global_id(0);

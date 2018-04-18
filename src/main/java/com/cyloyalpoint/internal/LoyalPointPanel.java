@@ -1,16 +1,25 @@
 package com.cyloyalpoint.internal;
 
+import java.awt.Color;
 import java.awt.Component;
+import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.Icon;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -18,6 +27,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
+import javax.swing.WindowConstants;
 
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.application.swing.CySwingApplication;
@@ -32,6 +42,9 @@ import org.cytoscape.work.TaskIterator;
 import org.cytoscape.work.TaskManager;
 import org.cytoscape.work.TaskObserver;
 
+import com.cyloyalpoint.util.ArrayUtil;
+import com.cyloyalpoint.view.ButtonGroupAtLeastOne;
+
 public class LoyalPointPanel extends JPanel implements CytoPanelComponent {
 
 	/**
@@ -43,10 +56,14 @@ public class LoyalPointPanel extends JPanel implements CytoPanelComponent {
 	private final TaskManager<?, ?> taskManager;
 	private final JFrame parentFrame;
 
+	private List<CyCLDevice> selectedDevices;
+	private Map<CyCLDevice, JCheckBox> checkBoxDevices;
+
 	private JButton btnExecute;
 	private ButtonGroup btnGroup;
 	private JRadioButton radSequence;
 	private JRadioButton radParallel;
+	private JRadioButton radMultiParallel;
 	private JPanel panelCompute;
 	private JTextField tfSaveFile;
 	private JButton btnSaveFile;
@@ -62,6 +79,7 @@ public class LoyalPointPanel extends JPanel implements CytoPanelComponent {
 		this.parentFrame = cySwingApplication.getJFrame();
 
 		initComponents();
+		initCyCLDevices();
 	}
 
 	public Component getComponent() {
@@ -80,7 +98,7 @@ public class LoyalPointPanel extends JPanel implements CytoPanelComponent {
 		return null;
 	}
 
-	public void initComponents() {
+	private void initComponents() {
 		this.setLayout(new GridBagLayout());
 		this.setBorder(BorderFactory.createTitledBorder("Loyal Point"));
 		this.setVisible(true);
@@ -104,9 +122,14 @@ public class LoyalPointPanel extends JPanel implements CytoPanelComponent {
 		radParallel.addActionListener(new RadioButtonParallelListener());
 		panelCompute.add(radParallel);
 
+		radMultiParallel = new JRadioButton("Multi-Parallel");
+		radMultiParallel.addActionListener(new RadioButtonMultiParallelListener());
+		panelCompute.add(radMultiParallel);
+
 		btnGroup = new ButtonGroup();
 		btnGroup.add(radSequence);
 		btnGroup.add(radParallel);
+		btnGroup.add(radMultiParallel);
 
 		gbc.gridx = 0;
 		gbc.gridy = 1;
@@ -136,6 +159,26 @@ public class LoyalPointPanel extends JPanel implements CytoPanelComponent {
 		this.add(lbStatus, gbc);
 	}
 
+	private void initCyCLDevices() {
+		this.selectedDevices = new ArrayList<>();
+		this.checkBoxDevices = new HashMap<>();
+
+		List<CyCLDevice> deviceList = null;
+
+		try {
+			deviceList = CyCL.getDevices();
+		} catch (Exception e) {
+		}
+
+		ButtonGroupAtLeastOne buttonGroupAtLeastOne = new ButtonGroupAtLeastOne();
+
+		for (CyCLDevice device : deviceList) {
+			JCheckBox cb = new JCheckBox(device.name);
+			checkBoxDevices.put(device, cb);
+			buttonGroupAtLeastOne.add(cb);
+		}
+	}
+
 	private class ButtonExecuteListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
 			CyNetwork network = cyApplicationManager.getCurrentNetwork();
@@ -154,6 +197,12 @@ public class LoyalPointPanel extends JPanel implements CytoPanelComponent {
 					LoyalPointTaskObserver observer = new LoyalPointTaskObserver();
 
 					taskManager.execute(new TaskIterator(task), observer);
+				} else if (radMultiParallel.isSelected()) {
+					MultiParallelLoyalPointTask task = new MultiParallelLoyalPointTask(network, selectedDevices,
+							folderName, fileName);
+					LoyalPointTaskObserver observer = new LoyalPointTaskObserver();
+
+					taskManager.execute(new TaskIterator(task), observer);
 				} else {
 					LoyalPointTask task = new LoyalPointTask(network, folderName, fileName);
 					LoyalPointTaskObserver observer = new LoyalPointTaskObserver();
@@ -169,7 +218,15 @@ public class LoyalPointPanel extends JPanel implements CytoPanelComponent {
 
 	private class RadioButtonSequenceListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
-
+//			int[][] ar = ArrayUtil.splitArrayBaseOnRatio(new int[] { 1, 2, 3, 4, 5, 6, 7 , 8 }, 3, new int[] { 1, 1, 1 });
+//			String s = "";
+//			for (int[] a : ar) {
+//				for (int i = 0; i < a.length; i++) {
+//					s += a[i] + ",";
+//				}
+//				s += "\n";
+//			}
+//			JOptionPane.showMessageDialog(parentFrame, s, "Information", 1);
 		}
 	}
 
@@ -182,6 +239,55 @@ public class LoyalPointPanel extends JPanel implements CytoPanelComponent {
 						"Device: " + device.name
 								+ "\nYou can change OpenCL device by go to menu: Edit->Preferences->OpenCL Settings...",
 						"Information", 1);
+			} catch (Exception ex) {
+				JOptionPane.showMessageDialog(parentFrame, "No OpenCL devices found, cannot run program in parallel.",
+						"Error", 0);
+				radSequence.setSelected(true);
+			}
+		}
+	}
+
+	private class RadioButtonMultiParallelListener implements ActionListener {
+		public void actionPerformed(ActionEvent e) {
+			try {
+				JDialog jDialog = new JDialog(parentFrame, "OpenCL Devices", true);
+				jDialog.setLayout(new GridBagLayout());
+				jDialog.getContentPane().setBackground(new Color(240, 240, 240));
+				
+				GridBagConstraints gbc = new GridBagConstraints();
+
+				gbc.fill = GridBagConstraints.HORIZONTAL;
+				gbc.gridx = 0;
+				gbc.gridy = 0;
+
+				for (Entry<CyCLDevice, JCheckBox> entry : checkBoxDevices.entrySet()) {
+					jDialog.add(entry.getValue(), gbc);
+					gbc.gridy++;
+				}
+
+				selectedDevices.clear();
+
+				JButton jButton = new JButton("OK");
+				jButton.setBackground(Color.MAGENTA);
+				jButton.setForeground(Color.BLUE);
+				jButton.addActionListener((ActionEvent event) -> {
+					for (Entry<CyCLDevice, JCheckBox> entry : checkBoxDevices.entrySet()) {
+						if (entry.getValue().isSelected()) {
+							selectedDevices.add(entry.getKey());
+						}
+					}
+
+					jDialog.dispose();
+				});
+				
+				gbc.gridy++;
+				jDialog.add(jButton, gbc);
+
+				jDialog.setSize(500, 300);
+				jDialog.setLocationRelativeTo(null);
+				jDialog.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+				jDialog.setVisible(true);
+
 			} catch (Exception ex) {
 				JOptionPane.showMessageDialog(parentFrame, "No OpenCL devices found, cannot run program in parallel.",
 						"Error", 0);

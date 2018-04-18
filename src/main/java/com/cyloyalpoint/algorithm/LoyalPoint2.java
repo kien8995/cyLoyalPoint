@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.cytoscape.model.CyNetwork;
 
+import com.cyloyalpoint.util.ArrayUtil;
 import com.cyloyalpoint.util.MathUtil;
 import com.cyloyalpoint.util.NetworkUtil;
 
@@ -150,7 +151,7 @@ public class LoyalPoint2 {
 				error += Math.abs(newLoyalPoint - currentLoyalPoint);
 			}
 
-			MathUtil.swapArrays(result, tempLoyalPoint, result.length);
+			ArrayUtil.swapArrays(result, tempLoyalPoint, result.length);
 
 			iter++;
 		} while (error > EPS && iter < maxIterations);

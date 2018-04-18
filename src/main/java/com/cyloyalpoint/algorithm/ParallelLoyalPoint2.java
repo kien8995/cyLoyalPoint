@@ -9,6 +9,7 @@ import org.cytoscape.opencl.cycl.CyCLBuffer;
 import org.cytoscape.opencl.cycl.CyCLDevice;
 import org.cytoscape.opencl.cycl.CyCLProgram;
 
+import com.cyloyalpoint.util.ArrayUtil;
 import com.cyloyalpoint.util.MathUtil;
 import com.cyloyalpoint.util.NetworkUtil;
 
@@ -84,6 +85,8 @@ public class ParallelLoyalPoint2 {
 
 	private class LoyalPoint {
 
+		private final float EPS = 1e-5f;
+		private final int MAX_ITERATION = 500;
 		private int nodeCount;
 		private float E;
 		private int[] unDirectedAdjacentList;
@@ -178,7 +181,7 @@ public class ParallelLoyalPoint2 {
 				}
 			}
 
-			int[][] chunks = MathUtil.splitArray(normalNode, (int) GLOBAL_WORK_SIZE);
+			int[][] chunks = ArrayUtil.splitArrayIntoChunks(normalNode, (int) GLOBAL_WORK_SIZE);
 
 			for (int[] chunk : chunks) {
 
@@ -193,20 +196,20 @@ public class ParallelLoyalPoint2 {
 				program.getKernel("InitLoyalPoint").execute(new long[] { (nodeCount + 1) * chunk.length }, null,
 						bufferLoyalPoint);
 
-				program.getKernel("InitResult").execute(new long[] { (nodeCount + 1) }, null, bufferResultIndex,
+				program.getKernel("InitResult").execute(new long[] { chunk.length }, null, bufferResultIndex,
 						bufferResultValue);
 
 				program.getKernel("ComputeLoyalNodesOfLeader").execute(new long[] { GLOBAL_WORK_SIZE },
 						new long[] { LOCAL_WORK_SIZE }, bufferInDirectedAdjacentList, bufferUnDirectedAdjacentList,
 						bufferNormalNode, bufferLoyalPoint, bufferResultIndex, bufferResultValue, leader, againstLeader,
-						nodeCount, E, chunk.length);
+						nodeCount, E, EPS, MAX_ITERATION, chunk.length);
 
 				bufferResultIndex.getFromDevice(resultIndex);
 				bufferResultValue.getFromDevice(resultValue);
 
 				for (int index = 0; index < chunk.length; index++) {
 					if (resultValue[index] != -9999.0f) {
-						ans.put(resultIndex[index], resultValue[index]);
+						ans.put(resultIndex[index], MathUtil.zero(resultValue[index], EPS));
 					}
 				}
 

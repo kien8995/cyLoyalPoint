@@ -25,6 +25,8 @@ public class ParallelLoyalPointTask extends AbstractTask implements ObservableTa
 	private CyNetwork network;
 	private File file;
 
+	private boolean interrupted = false;
+
 	private long executeTime;
 
 	public ParallelLoyalPointTask(CyNetwork network, String folderName, String fileName) {
@@ -37,12 +39,10 @@ public class ParallelLoyalPointTask extends AbstractTask implements ObservableTa
 
 	@Override
 	public void run(TaskMonitor taskMonitor) throws Exception {
-		taskMonitor.setTitle("Computing...");
+		taskMonitor.setTitle("Computing loyal point...");
 
 		taskMonitor.setStatusMessage("Initializing...");
 		taskMonitor.setProgress(0.0);
-
-		long startTime = System.currentTimeMillis();
 
 		List<CyNode> nodes = network.getNodeList();
 		CyTable nodeTable = network.getDefaultNodeTable();
@@ -61,10 +61,16 @@ public class ParallelLoyalPointTask extends AbstractTask implements ObservableTa
 			nodeTable.createColumn(columnName, Double.class, false);
 		}
 
+		long startTime = System.currentTimeMillis();
+		
 		List<String> lines = new ArrayList<>();
 		int count = 0;
 		double percent;
 		for (CyNode node : nodes) {
+			if (interrupted) {
+				break;
+			}
+
 			count++;
 			if (count == 1) {
 				percent = 1.0 * count / nodes.size();
@@ -77,10 +83,10 @@ public class ParallelLoyalPointTask extends AbstractTask implements ObservableTa
 			long startTimeNode = System.currentTimeMillis();
 
 			lines.add(network.getRow(node).get("name", String.class) + "'s supporter:");
-			
+
 			Map<Integer, Float> result = plp.compute(nodeIndexes.get(node));
 			Map<Integer, Float> sortedResult = MapUtil.sortIntegerFloatMapByValue(result, false);
-			
+
 			double sum = 0.0;
 			for (Map.Entry<Integer, Float> entry : sortedResult.entrySet()) {
 				lines.add(network.getRow(indexNodes.get(entry.getKey())).get("name", String.class) + "\t"
@@ -105,7 +111,7 @@ public class ParallelLoyalPointTask extends AbstractTask implements ObservableTa
 					+ "Remaining Time: " + StringUtil.getDurationBreakdown(remainingTime));
 			taskMonitor.setProgress(percent);
 
-//			 break;
+			// break;
 		}
 
 		long endTime = System.currentTimeMillis();
@@ -121,6 +127,7 @@ public class ParallelLoyalPointTask extends AbstractTask implements ObservableTa
 	@Override
 	public void cancel() {
 		super.cancel();
+		this.interrupted = true;
 	}
 
 	@Override

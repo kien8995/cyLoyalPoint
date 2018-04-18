@@ -4,6 +4,7 @@ import java.io.File;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -11,25 +12,29 @@ import org.apache.commons.io.FileUtils;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.model.CyTable;
+import org.cytoscape.opencl.cycl.CyCLDevice;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.ObservableTask;
 import org.cytoscape.work.TaskMonitor;
 
-import com.cyloyalpoint.algorithm.LoyalPoint;
+import com.cyloyalpoint.algorithm.MultiParallelLoyalPoint;
 import com.cyloyalpoint.util.MapUtil;
 import com.cyloyalpoint.util.StringUtil;
 
-public class LoyalPointTask extends AbstractTask implements ObservableTask {
+public class MultiParallelLoyalPointTask extends AbstractTask implements ObservableTask {
 
 	private CyNetwork network;
+	private List<CyCLDevice> devices;
 	private File file;
-
-	private boolean interrupted = false;
 	
+	private boolean interrupted = false;
+
 	private long executeTime;
 
-	public LoyalPointTask(CyNetwork network, String folderName, String fileName) {
+	public MultiParallelLoyalPointTask(CyNetwork network, List<CyCLDevice> devices, String folderName,
+			String fileName) {
 		this.network = network;
+		this.devices = devices;
 
 		if (folderName != null && fileName != null) {
 			file = new File(new File(folderName), fileName);
@@ -40,13 +45,28 @@ public class LoyalPointTask extends AbstractTask implements ObservableTask {
 	public void run(TaskMonitor taskMonitor) throws Exception {
 		taskMonitor.setTitle("Computing loyal point...");
 
+		List<Double> benchMarks = new ArrayList<>();
+		
+		for (CyCLDevice device : devices) {
+			double benchMark = device.performBenchmark(false);
+			benchMarks.add(benchMark);
+			taskMonitor.setStatusMessage("Benchmarking...\n" + device.name);
+		}
+
 		taskMonitor.setStatusMessage("Initializing...");
 		taskMonitor.setProgress(0.0);
 
 		List<CyNode> nodes = network.getNodeList();
 		CyTable nodeTable = network.getDefaultNodeTable();
 
-		LoyalPoint lp = new LoyalPoint(network);
+		MultiParallelLoyalPoint plp = new MultiParallelLoyalPoint(network, devices, benchMarks);
+		Map<CyNode, Integer> nodeIndexes = new HashMap<>();
+		Map<Integer, CyNode> indexNodes = new HashMap<>();
+		int nodeIndex = 0;
+		for (CyNode node : nodes) {
+			indexNodes.put(nodeIndex, node);
+			nodeIndexes.put(node, nodeIndex++);
+		}
 
 		String columnName = "Sum Loyal Point";
 		if (nodeTable.getColumn(columnName) == null) {
@@ -76,12 +96,13 @@ public class LoyalPointTask extends AbstractTask implements ObservableTask {
 
 			lines.add(network.getRow(node).get("name", String.class) + "'s supporter:");
 
-			Map<String, Float> result = lp.computeLoyalNodesOfLeader(network.getRow(node).get("name", String.class));
-			Map<String, Float> sortedResult = MapUtil.sortStringFloatMapByValue(result, false);
+			Map<Integer, Float> result = plp.compute(nodeIndexes.get(node));
+			Map<Integer, Float> sortedResult = MapUtil.sortIntegerFloatMapByValue(result, false);
 
 			double sum = 0.0;
-			for (Map.Entry<String, Float> entry : sortedResult.entrySet()) {
-				lines.add(entry.getKey() + "\t" + sortedResult.get(entry.getKey()));
+			for (Map.Entry<Integer, Float> entry : sortedResult.entrySet()) {
+				lines.add(network.getRow(indexNodes.get(entry.getKey())).get("name", String.class) + "\t"
+						+ sortedResult.get(entry.getKey()));
 				sum += sortedResult.get(entry.getKey());
 			}
 			network.getRow(node).set(columnName, sum);

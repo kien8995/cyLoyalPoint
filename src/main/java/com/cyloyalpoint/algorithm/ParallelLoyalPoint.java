@@ -9,6 +9,7 @@ import org.cytoscape.opencl.cycl.CyCLBuffer;
 import org.cytoscape.opencl.cycl.CyCLDevice;
 import org.cytoscape.opencl.cycl.CyCLProgram;
 
+import com.cyloyalpoint.util.ArrayUtil;
 import com.cyloyalpoint.util.MathUtil;
 import com.cyloyalpoint.util.NetworkUtil;
 
@@ -198,7 +199,7 @@ public class ParallelLoyalPoint {
 							bufferSums, bufferErrors, leader, againstLeader, E, nodeCount + 1);
 
 					bufferErrors.getFromDevice(errors);
-					maxError = MathUtil.maxValue(errors);
+					maxError = ArrayUtil.maxValue(errors);
 				}
 
 				bufferLoyalPoint.getFromDevice(loyalPoint);
