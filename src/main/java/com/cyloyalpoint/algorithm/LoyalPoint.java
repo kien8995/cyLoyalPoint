@@ -14,7 +14,7 @@ import com.cyloyalpoint.util.MathUtil;
 public class LoyalPoint {
 
 	private float E;
-	private final float EPS = 1e-7f;
+	private final float EPS = 2 * 1e-7f;
 	private List<String> nodeList;
 	private Map<String, ArrayList<String>> unDirectedAdjacentList;
 	private Map<String, ArrayList<String>> outDirectedAdjacentList;
@@ -88,12 +88,13 @@ public class LoyalPoint {
 	}
 
 	public Map<String, Float> computeCompetitive(String leader, String againstLeader) {
-		int maxIterations = 1000;
+		int maxIterations = 200;
 		Map<String, Float> loyalPoint = new HashMap<>();
 		Map<String, Float> tempLoyalPoint = new HashMap<>();
 
 		for (String node : nodeList) {
-			loyalPoint.put(node, (float) MathUtil.randomInRange(-1, 1)); // random value in {-1, 0, 1}
+			//loyalPoint.put(node, (float) MathUtil.randomInRange(-1, 1)); // random value in {-1, 0, 1}
+			loyalPoint.put(node, 0f);
 		}
 
 		loyalPoint.put(leader, 1f);

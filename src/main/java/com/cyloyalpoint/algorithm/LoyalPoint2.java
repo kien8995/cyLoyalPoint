@@ -13,7 +13,7 @@ public class LoyalPoint2 {
 
 	private int nodeCount;
 	private float E;
-	private final float EPS = 1e-7f;
+	private final float EPS = 2 * 1e-7f;
 	private int[] unDirectedAdjacentList;
 	private int[] outDirectedAdjacentList;
 	private int[] inDirectedAdjacentList;
@@ -98,11 +98,12 @@ public class LoyalPoint2 {
 
 	public void computeCompetitive(int leader, int againstLeader, int[] unDirectedAdjacentList,
 			int[] inDirectedAdjacentList, int targetNode, float[] result) {
-		int maxIterations = 1000;
+		int maxIterations = 200;
 		float[] tempLoyalPoint = new float[result.length];
 
 		for (int node = 0; node < nodeCount; node++) {
-			result[node] = MathUtil.randomInRange(-1, 1); // random value in {-1, 0, 1}
+			// result[node] = MathUtil.randomInRange(-1, 1); // random value in {-1, 0, 1}
+			result[node] = 0;
 		}
 
 		result[leader] = tempLoyalPoint[leader] = 1;

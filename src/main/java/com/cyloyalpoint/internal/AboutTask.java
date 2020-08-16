@@ -33,7 +33,7 @@ public class AboutTask extends AbstractTask {
 		frame.setAlwaysOnTop(true);
 		frame.getContentPane().setBackground(Color.WHITE);
 
-		authorName = new JLabel("Author: Kien Tran Dong");
+		authorName = new JLabel("Author: Dong Kien Tran");
 		authorName.setBounds(50, 165, 200, 30);
 		authorName.setFont(new Font("Tahoma", 1, 13));
 		frame.add(authorName);

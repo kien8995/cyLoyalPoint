@@ -12,7 +12,8 @@
 		<cytoscape.api.version>3.3.0</cytoscape.api.version>
 		<cytoscape.opencl.version>3.5.0</cytoscape.opencl.version>
 		<maven-compiler-plugin.version>3.7.0</maven-compiler-plugin.version>
-		<maven-bundle-plugin.version>2.5.4</maven-bundle-plugin.version>
+		<maven-bundle-plugin.version>4.2.1</maven-bundle-plugin.version>
+		<maven-enforcer-plugin>1.2</maven-enforcer-plugin>
 		<osgi.api.version>4.2.0</osgi.api.version>
 	</properties>
 
@@ -41,18 +42,41 @@
 				<version>${maven-bundle-plugin.version}</version>
 				<extensions>true</extensions>
 				<configuration>
+					<manifestLocation>META-INF</manifestLocation>
 					<instructions>
-						<Bundle-SymbolicName>your.org.MyApp</Bundle-SymbolicName>
+						<Bundle-SymbolicName>cyloyalpoint</Bundle-SymbolicName>
 						<Bundle-Version>${project.version}</Bundle-Version>
 
 						<!-- This tells the bundle plugin which packages should not be exported. -->
 						<Private-Package>com.cyloyalpoint.internal.*</Private-Package>
 
 						<Bundle-Activator>com.cyloyalpoint.internal.CyActivator</Bundle-Activator>
+						
+						<!--
+			              embed compile/runtime dependencies using path that matches the copied dependency folder
+			            -->
+			            <!-- <Embed-Dependency>*;scope=compile|runtime;inline=false</Embed-Dependency> -->
+<!-- 			            <Embed-Directory>target/dependency</Embed-Directory> -->
+<!-- 			            <Embed-StripGroup>true</Embed-StripGroup> -->
+						<Include-Resource>
+						  {maven-resources}, {maven-dependencies}
+						</Include-Resource>
 					</instructions>
 				</configuration>
 			</plugin>
-
+			<!-- <plugin> <groupId>org.apache.maven.plugins</groupId> <artifactId>maven-enforcer-plugin</artifactId> 
+				<version>${maven-enforcer-plugin}</version> <executions> <execution> <id>enforce-banned-dependencies</id> 
+				<goals> <goal>enforce</goal> </goals> <configuration> <rules> <bannedDependencies> 
+				<searchTransitive>true</searchTransitive> <excludes> <exclude>javassist:javassist</exclude>org.javassist 
+				is the new one <exclude>commons-logging</exclude> <exclude>aspectj:aspectj*</exclude> 
+				org.aspectj is the new one <exclude>hsqldb:hsqldb</exclude> org.hsqldb is 
+				the new one <exclude>log4j:log4j</exclude> <exclude>org.springframework:2.*</exclude> 
+				<exclude>org.springframework:3.*</exclude> <exclude>javax.xml.bind:*</exclude> 
+				<exclude>net.sf.saxon:*</exclude> <exclude>com.sun.xml.bind:*</exclude> <exclude>org.apache.commons:com.springsource.org.apache.commons.logging</exclude> 
+				</excludes> </bannedDependencies> <requireMavenVersion> <version>${maven.version.range}</version> 
+				</requireMavenVersion> <requireJavaVersion> <version>${java.version}</version> 
+				</requireJavaVersion> </rules> <fail>true</fail> </configuration> </execution> 
+				</executions> </plugin> -->
 			<plugin>
 				<artifactId>maven-antrun-plugin</artifactId>
 				<version>1.8</version>
@@ -73,12 +97,64 @@
 				</executions>
 			</plugin>
 
-			<!-- <plugin> <artifactId>maven-assembly-plugin</artifactId> <configuration> 
-				<archive> <manifest> <mainClass>com.cyloyalpoint.internal.CyActivator</mainClass> 
-				</manifest> </archive> <descriptorRefs> <descriptorRef>jar-with-dependencies</descriptorRef> 
-				</descriptorRefs> </configuration> <executions> <execution> <id>make-assembly</id> 
-				<phase>package</phase> <goals> <goal>single</goal> </goals> </execution> 
-				</executions> </plugin> -->
+<!--  			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<version>3.3.0</version>
+				<configuration>
+					<archive>
+						<manifest>
+							<addClasspath>true</addClasspath>
+							<mainClass>com.cyloyalpoint.internal.CyActivator</mainClass>
+						</manifest>
+					</archive>
+					<descriptorRefs>
+						<descriptorRef>jar-with-dependencies</descriptorRef>
+					</descriptorRefs>
+				</configuration>
+				<executions>
+					<execution>
+						<id>make-assembly</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin> -->
+
+<!-- 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.4</version>
+				<configuration>
+					<archive>
+						<manifest>
+							<addClasspath>true</addClasspath>
+							<mainClass>com.cyloyalpoint.internal.CyActivator</mainClass>
+							<classpathPrefix>dependency-jars/</classpathPrefix>
+						</manifest>
+					</archive>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>2.5.1</version>
+				<executions>
+					<execution>
+						<id>copy-dependencies</id>
+						<phase>package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>
+								${project.build.directory}/dependency-jars/
+							</outputDirectory>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin> -->
 		</plugins>
 	</build>
 
@@ -181,6 +257,12 @@
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
 			<version>2.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.ops4j.pax.logging</groupId>
+			<artifactId>pax-logging-api</artifactId>
+			<version>[1.5.2,2)</version>
+			<scope>provided</scope>
 		</dependency>
 	</dependencies>
 </project>

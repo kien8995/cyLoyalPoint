@@ -1,6 +1,8 @@
 package com.cyloyalpoint.util;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 
 public class ArrayUtil {
@@ -36,6 +38,40 @@ public class ArrayUtil {
 		return max;
 	}
 
+	public static int findMinIndex(int[] arrays) {
+		if (arrays == null || arrays.length == 0) {
+			return -1;
+		}
+
+		int minVal = arrays[0];
+		int minIdx = 0;
+
+		for (int idx = 1; idx < arrays.length; idx++) {
+			if (arrays[idx] < minVal) {
+				minVal = arrays[idx];
+				minIdx = idx;
+			}
+		}
+		return minIdx;
+	}
+
+	public static int findMaxIndex(int[] arrays) {
+		if (arrays == null || arrays.length == 0) {
+			return -1;
+		}
+
+		int maxVal = arrays[0];
+		int maxIdx = 0;
+
+		for (int idx = 1; idx < arrays.length; idx++) {
+			if (arrays[idx] > maxVal) {
+				maxVal = arrays[idx];
+				maxIdx = idx;
+			}
+		}
+		return maxIdx;
+	}
+
 	public static int[][] splitArrayIntoChunks(int[] arrayToSplit, int chunkSize) {
 		if (chunkSize <= 0) {
 			return new int[][] {};
@@ -56,25 +92,83 @@ public class ArrayUtil {
 		return arrays;
 	}
 
-	public static int[][] splitArrayBaseOnRatio(int[] arrayToSplit, int numberOfChunk, int[] ratio) {
-		if (numberOfChunk <= 0 || numberOfChunk != ratio.length) {
+	public static int[][] splitArrayBaseOnRatio(int[] arrayToSplit, int[] ratio) {
+		if (ratio.length <= 0 || arrayToSplit.length < ratio.length) {
 			return new int[][] {};
 		}
-		int rest = arrayToSplit.length % Arrays.stream(ratio).sum();
 
-		int elementPerPart = arrayToSplit.length / Arrays.stream(ratio).sum() + (rest > 0 ? 1 : 0);
+		int numberOfChunk = ratio.length;
+
+		List<ArrayList<Integer>> list = new ArrayList<>();
+		for (int i = 0; i < numberOfChunk; i++) {
+			list.add(new ArrayList<Integer>());
+		}
+		
+		int[] threshold = new int[numberOfChunk];
+		Arrays.fill(threshold, 0);
+
+		ArrayIndexComparator comparator = new ArrayIndexComparator(ratio, false);
+		Integer[] indexes = comparator.createIndexArray();
+		Arrays.sort(indexes, comparator);
+
+		int preferIndex = findMaxIndex(ratio);
+
+		int elementIndex = 0;
+		while (elementIndex < arrayToSplit.length) {
+
+			boolean flag = false;
+
+			for (int index : indexes) {
+				if (list.get(index).size() <= threshold[index]) {
+					list.get(index).add(arrayToSplit[elementIndex]);
+					flag = true;
+					break;
+				}
+			}
+
+			if (!flag) {
+				list.get(preferIndex).add(arrayToSplit[elementIndex]);
+
+				for (int index : indexes) {
+					threshold[index] = list.get(index).size() + ratio[index];
+				}
+			}
+
+			elementIndex++;
+		}
 
 		int[][] arrays = new int[numberOfChunk][];
 
-		for (int i = 0; i < (rest > 0 ? numberOfChunk - 1 : numberOfChunk); i++) {
-			arrays[i] = Arrays.copyOfRange(arrayToSplit, i * elementPerPart * ratio[i],
-					i * elementPerPart * ratio[i] + (elementPerPart * ratio[i]));
+		for (int i = 0; i < numberOfChunk; i++) {
+			arrays[i] = list.get(i).stream().mapToInt(Integer::intValue).toArray();
 		}
-		if (rest > 0) {
-			arrays[numberOfChunk - 1] = Arrays.copyOfRange(arrayToSplit,
-					(numberOfChunk - 1) * elementPerPart * ratio[(numberOfChunk - 1)],
-					(numberOfChunk - 1) * elementPerPart * ratio[(numberOfChunk - 1)] + rest);
-		}
+
 		return arrays;
+	}
+
+	public static class ArrayIndexComparator implements Comparator<Integer> {
+		private final int[] array;
+		private boolean asc;
+
+		public ArrayIndexComparator(int[] array, boolean asc) {
+			this.array = array;
+			this.asc = asc;
+		}
+
+		public Integer[] createIndexArray() {
+			Integer[] indexes = new Integer[array.length];
+			for (int i = 0; i < array.length; i++) {
+				indexes[i] = i;
+			}
+			return indexes;
+		}
+
+		@Override
+		public int compare(Integer index1, Integer index2) {
+			if (asc) {
+				return Integer.compare(array[index1], array[index2]);
+			}
+			return Integer.compare(array[index2], array[index1]);
+		}
 	}
 }

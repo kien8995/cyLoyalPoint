@@ -3,7 +3,6 @@ package com.cyloyalpoint.internal;
 import java.awt.event.ActionEvent;
 import java.util.Properties;
 
-import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.application.swing.AbstractCyAction;
 import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.application.swing.CytoPanel;
@@ -11,7 +10,6 @@ import org.cytoscape.application.swing.CytoPanelComponent;
 import org.cytoscape.application.swing.CytoPanelName;
 import org.cytoscape.application.swing.CytoPanelState;
 import org.cytoscape.service.util.CyServiceRegistrar;
-import org.cytoscape.work.TaskManager;
 
 public class LoyalPointPanelAction extends AbstractCyAction {
 
@@ -25,22 +23,22 @@ public class LoyalPointPanelAction extends AbstractCyAction {
 	private final CytoPanel cytoPanelSouth;
 	private LoyalPointPanel loyalPointPanel;
 
-	public LoyalPointPanelAction(CyApplicationManager cyApplicationManager, CySwingApplication cySwingApplication,
-			CyServiceRegistrar cyServiceRegistrar, TaskManager<?, ?> taskManager, String parentMenu, String panelName) {
+	public LoyalPointPanelAction(CyServices cyServices, String parentMenu, String panelName) {
 		super(panelName);
 		setPreferredMenu(parentMenu);
 
-		this.cySwingApplication = cySwingApplication;
-		this.cyServiceRegistrar = cyServiceRegistrar;
+		this.cySwingApplication = cyServices.getSwingApplication();
+		this.cyServiceRegistrar = cyServices.getServiceRegistrar();
 		this.cytoPanelSouth = this.cySwingApplication.getCytoPanel(CytoPanelName.SOUTH);
-		this.loyalPointPanel = new LoyalPointPanel(cyApplicationManager, cySwingApplication, taskManager);
+		this.loyalPointPanel = new LoyalPointPanel(cyServices.getApplicationManager(), cyServices.getSwingApplication(),
+				cyServices.getTaskManager(), cyServices.getNetworkFactory());
 	}
 
 	public void actionPerformed(ActionEvent e) {
 		cyServiceRegistrar.registerService(loyalPointPanel, CytoPanelComponent.class, new Properties());
 
 		App.services.put(loyalPointPanel, CytoPanelComponent.class);
-		
+
 		if (cytoPanelSouth.getState() == CytoPanelState.HIDE) {
 			cytoPanelSouth.setState(CytoPanelState.DOCK);
 		}

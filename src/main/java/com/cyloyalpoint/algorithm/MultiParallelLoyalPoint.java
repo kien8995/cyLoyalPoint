@@ -4,6 +4,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.opencl.cycl.CyCLBuffer;
@@ -17,7 +22,7 @@ import com.cyloyalpoint.util.NetworkUtil;
 public class MultiParallelLoyalPoint {
 
 	private final List<CyCLDevice> devices;
-	private final List<Double> benchMarks;
+	private final List<Long> benchMarks;
 	private final List<CyCLProgram> programs;
 
 	private final CyNetwork network;
@@ -25,7 +30,9 @@ public class MultiParallelLoyalPoint {
 	private final long[] GLOBAL_WORK_SIZE;
 	private final long[] LOCAL_WORK_SIZE;
 
-	public MultiParallelLoyalPoint(CyNetwork network, List<CyCLDevice> devices, List<Double> benchMarks) {
+	private int indexFor;
+
+	public MultiParallelLoyalPoint(CyNetwork network, List<CyCLDevice> devices, List<Long> benchMarks) {
 		this.network = network;
 		this.devices = devices;
 		this.benchMarks = benchMarks;
@@ -85,17 +92,42 @@ public class MultiParallelLoyalPoint {
 		NetworkCommon common = new NetworkCommon(inDirectedAdjacentList, outDirectedAdjacentList,
 				unDirectedAdjacentList, E, leader, againstLeader, nodeCount);
 
-		int numberNodePerChunk = (normalNode.length / devices.size())
-				+ (normalNode.length % devices.size() == 0 ? 0 : 1);
+		int deviceSize = devices.size();
+		int numberNodePerChunk = (normalNode.length / deviceSize) + (normalNode.length % deviceSize == 0 ? 0 : 1);
 		int[][] normalNodes = ArrayUtil.splitArrayIntoChunks(normalNode, numberNodePerChunk);
-		
+//		 int[][] normalNodes = ArrayUtil.splitArrayBaseOnRatio(normalNode,
+//		 new int[] {1, 10});
+
+		List<Future<Map<Integer, Float>>> futures = new ArrayList<>();
+
+		ExecutorService executorService = Executors.newFixedThreadPool(deviceSize);
+
+		for (indexFor = 0; indexFor < deviceSize; indexFor++) {
+			LoyalPoint lp = new LoyalPoint(devices.get(indexFor), programs.get(indexFor), GLOBAL_WORK_SIZE[indexFor],
+					LOCAL_WORK_SIZE[indexFor], normalNodes[indexFor], common);
+
+			Callable<Map<Integer, Float>> callableTask = () -> lp.compute();
+			Future<Map<Integer, Float>> future = executorService.submit(callableTask);
+			futures.add(future);
+		}
+
 		Map<Integer, Float> result = new HashMap<>();
 
-		for (int i = 0; i < devices.size(); i++) {
-			LoyalPoint lp = new LoyalPoint(devices.get(i), programs.get(i), GLOBAL_WORK_SIZE[i], LOCAL_WORK_SIZE[i],
-					normalNodes[i], common);
+		for (Future<Map<Integer, Float>> future : futures) {
+			try {
+				result.putAll(future.get());
+			} catch (Exception e) {
+				throw new IllegalStateException(e);
+			}
+		}
 
-			result.putAll(lp.compute());
+		executorService.shutdown();
+		try {
+			if (!executorService.awaitTermination(800, TimeUnit.MILLISECONDS)) {
+				executorService.shutdownNow();
+			}
+		} catch (InterruptedException e) {
+			executorService.shutdownNow();
 		}
 
 		return result;
@@ -125,8 +157,8 @@ public class MultiParallelLoyalPoint {
 
 	private class LoyalPoint {
 
-		private final float EPS = 1e-5f;
-		private final int MAX_ITERATION = 500;
+		private final float EPS = 2 * 1e-7f;
+		private final int MAX_ITERATION = 200;
 		private CyCLDevice device;
 		private CyCLProgram program;
 		private long globalWorkSize;

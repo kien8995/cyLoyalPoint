@@ -85,8 +85,8 @@ public class ParallelLoyalPoint2 {
 
 	private class LoyalPoint {
 
-		private final float EPS = 1e-5f;
-		private final int MAX_ITERATION = 500;
+		private final float EPS = 2 * 1e-7f;
+		private final int MAX_ITERATION = 200;
 		private int nodeCount;
 		private float E;
 		private int[] unDirectedAdjacentList;

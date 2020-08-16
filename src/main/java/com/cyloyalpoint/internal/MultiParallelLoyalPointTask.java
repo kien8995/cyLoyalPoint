@@ -7,9 +7,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
 import org.cytoscape.model.CyNetwork;
+import org.cytoscape.model.CyNetworkFactory;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.model.CyTable;
 import org.cytoscape.opencl.cycl.CyCLDevice;
@@ -17,22 +19,25 @@ import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.ObservableTask;
 import org.cytoscape.work.TaskMonitor;
 
+import com.cyloyalpoint.algorithm.BenchmarkKernel;
 import com.cyloyalpoint.algorithm.MultiParallelLoyalPoint;
 import com.cyloyalpoint.util.MapUtil;
 import com.cyloyalpoint.util.StringUtil;
 
 public class MultiParallelLoyalPointTask extends AbstractTask implements ObservableTask {
 
+	private CyNetworkFactory networkFactory;
 	private CyNetwork network;
 	private List<CyCLDevice> devices;
 	private File file;
-	
+
 	private boolean interrupted = false;
 
 	private long executeTime;
 
-	public MultiParallelLoyalPointTask(CyNetwork network, List<CyCLDevice> devices, String folderName,
+	public MultiParallelLoyalPointTask(CyNetworkFactory networkFactory, CyNetwork network, List<CyCLDevice> devices, String folderName,
 			String fileName) {
+		this.networkFactory = networkFactory;
 		this.network = network;
 		this.devices = devices;
 
@@ -45,13 +50,25 @@ public class MultiParallelLoyalPointTask extends AbstractTask implements Observa
 	public void run(TaskMonitor taskMonitor) throws Exception {
 		taskMonitor.setTitle("Computing loyal point...");
 
-		List<Double> benchMarks = new ArrayList<>();
+		taskMonitor.setStatusMessage("Running benchmark...");
 		
+		List<Long> benchMarks = new ArrayList<>();
+
+		long tempMax = 0;
 		for (CyCLDevice device : devices) {
-			double benchMark = device.performBenchmark(false);
-			benchMarks.add(benchMark);
-			taskMonitor.setStatusMessage("Benchmarking...\n" + device.name);
+			long benchMarkTime = new BenchmarkKernel(device).benchmarkComputeTime();
+			taskMonitor.setStatusMessage("Running benchmark...\n" + device.name + " : " + benchMarkTime);
+			benchMarks.add(benchMarkTime);
+
+			if (benchMarkTime > tempMax) {
+				tempMax = benchMarkTime;
+			}
 		}
+
+		final long maxBenchMarkTime = tempMax;
+
+		benchMarks = benchMarks.stream().map(time -> (maxBenchMarkTime / time) + (maxBenchMarkTime % time == 0 ? 0 : 1))
+				.collect(Collectors.toList());
 
 		taskMonitor.setStatusMessage("Initializing...");
 		taskMonitor.setProgress(0.0);
@@ -74,7 +91,7 @@ public class MultiParallelLoyalPointTask extends AbstractTask implements Observa
 		}
 
 		long startTime = System.currentTimeMillis();
-		
+
 		List<String> lines = new ArrayList<>();
 		int count = 0;
 		double percent;
@@ -82,7 +99,7 @@ public class MultiParallelLoyalPointTask extends AbstractTask implements Observa
 			if (interrupted) {
 				break;
 			}
-			
+
 			count++;
 			if (count == 1) {
 				percent = 1.0 * count / nodes.size();
@@ -123,7 +140,7 @@ public class MultiParallelLoyalPointTask extends AbstractTask implements Observa
 					+ "Remaining Time: " + StringUtil.getDurationBreakdown(remainingTime));
 			taskMonitor.setProgress(percent);
 
-			// break;
+//			 break;
 		}
 
 		long endTime = System.currentTimeMillis();

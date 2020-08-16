@@ -2,7 +2,6 @@ package com.cyloyalpoint.internal;
 
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
@@ -34,6 +33,7 @@ import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.application.swing.CytoPanelComponent;
 import org.cytoscape.application.swing.CytoPanelName;
 import org.cytoscape.model.CyNetwork;
+import org.cytoscape.model.CyNetworkFactory;
 import org.cytoscape.opencl.cycl.CyCL;
 import org.cytoscape.opencl.cycl.CyCLDevice;
 import org.cytoscape.work.FinishStatus;
@@ -42,7 +42,7 @@ import org.cytoscape.work.TaskIterator;
 import org.cytoscape.work.TaskManager;
 import org.cytoscape.work.TaskObserver;
 
-import com.cyloyalpoint.util.ArrayUtil;
+import com.cyloyalpoint.util.StringUtil;
 import com.cyloyalpoint.view.ButtonGroupAtLeastOne;
 
 public class LoyalPointPanel extends JPanel implements CytoPanelComponent {
@@ -54,6 +54,7 @@ public class LoyalPointPanel extends JPanel implements CytoPanelComponent {
 
 	private final CyApplicationManager cyApplicationManager;
 	private final TaskManager<?, ?> taskManager;
+	private final CyNetworkFactory networkFactory;
 	private final JFrame parentFrame;
 
 	private List<CyCLDevice> selectedDevices;
@@ -73,9 +74,10 @@ public class LoyalPointPanel extends JPanel implements CytoPanelComponent {
 	private String fileName;
 
 	public LoyalPointPanel(CyApplicationManager cyApplicationManager, CySwingApplication cySwingApplication,
-			TaskManager<?, ?> taskManager) {
+			TaskManager<?, ?> taskManager, CyNetworkFactory networkFactory) {
 		this.cyApplicationManager = cyApplicationManager;
 		this.taskManager = taskManager;
+		this.networkFactory = networkFactory;
 		this.parentFrame = cySwingApplication.getJFrame();
 
 		initComponents();
@@ -198,7 +200,7 @@ public class LoyalPointPanel extends JPanel implements CytoPanelComponent {
 
 					taskManager.execute(new TaskIterator(task), observer);
 				} else if (radMultiParallel.isSelected()) {
-					MultiParallelLoyalPointTask task = new MultiParallelLoyalPointTask(network, selectedDevices,
+					MultiParallelLoyalPointTask task = new MultiParallelLoyalPointTask(networkFactory, network, selectedDevices,
 							folderName, fileName);
 					LoyalPointTaskObserver observer = new LoyalPointTaskObserver();
 
@@ -218,15 +220,7 @@ public class LoyalPointPanel extends JPanel implements CytoPanelComponent {
 
 	private class RadioButtonSequenceListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
-//			int[][] ar = ArrayUtil.splitArrayBaseOnRatio(new int[] { 1, 2, 3, 4, 5, 6, 7 , 8 }, 3, new int[] { 1, 1, 1 });
-//			String s = "";
-//			for (int[] a : ar) {
-//				for (int i = 0; i < a.length; i++) {
-//					s += a[i] + ",";
-//				}
-//				s += "\n";
-//			}
-//			JOptionPane.showMessageDialog(parentFrame, s, "Information", 1);
+			
 		}
 	}
 
@@ -323,8 +317,7 @@ public class LoyalPointPanel extends JPanel implements CytoPanelComponent {
 
 		@Override
 		public void allFinished(FinishStatus finishStatus) {
-			lbStatus.setText("Elapsed Time: " + executeTime + " ms");
+			lbStatus.setText("Elapsed Time: " + StringUtil.getDurationBreakdown(executeTime));
 		}
-
 	}
 }

@@ -128,7 +128,8 @@ public class ParallelLoyalPoint {
 			E = 1.0f / maxOutDegMixing;
 
 			for (int i = 0; i < loyalPoint.length; i++) {
-				loyalPoint[i] = MathUtil.randomInRange(-1, 1);
+				// loyalPoint[i] = MathUtil.randomInRange(-1, 1);
+				loyalPoint[i] = 0f;
 			}
 		}
 

@@ -15,11 +15,11 @@ public class ExitPluginAction extends AbstractCyAction {
 
 	private CyServiceRegistrar cyServiceRegistrar;
 
-	public ExitPluginAction(CyServiceRegistrar cyServiceRegistrar, String parentMenu, String menuName) {
+	public ExitPluginAction(CyServices cyServices, String parentMenu, String menuName) {
 		super(menuName);
 		setPreferredMenu(parentMenu);
 
-		this.cyServiceRegistrar = cyServiceRegistrar;
+		this.cyServiceRegistrar = cyServices.getServiceRegistrar();
 	}
 
 	@Override

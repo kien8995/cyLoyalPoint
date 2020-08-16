@@ -38,21 +38,24 @@ public class NetworkUtil {
 		}
 
 		Map<Integer, ArrayList<Integer>> inDirectedAdjacentList = new HashMap<Integer, ArrayList<Integer>>();
+		
+		for (CyNode node : nodes) {
+			inDirectedAdjacentList.put(nodeIndexes.get(node), new ArrayList<Integer>());
+		}
 
 		int nAdjNode = 0;
 		for (CyEdge edge : edges) {
-			if (network.getRow(edge).get("interaction", String.class).equalsIgnoreCase("directed")) {
-				if (!inDirectedAdjacentList.containsKey(nodeIndexes.get(edge.getTarget()))) {
-					inDirectedAdjacentList.put(nodeIndexes.get(edge.getTarget()), new ArrayList<Integer>());
-				}
+			if (network.getRow(edge).isSet("interaction")
+					&& network.getRow(edge).get("interaction", String.class).equalsIgnoreCase("directed")) {
 				inDirectedAdjacentList.get(nodeIndexes.get(edge.getTarget())).add(nodeIndexes.get(edge.getSource()));
 				nAdjNode++;
 			}
 		}
 
 		Integer[] adjKey = inDirectedAdjacentList.keySet().toArray(new Integer[inDirectedAdjacentList.keySet().size()]);
+
 		if (adjKey.length == 0)
-			return new int[] {-1};
+			return new int[] { -1 };
 
 		int nNode = nodes.size();
 		int arraySize = nNode + 1 + nAdjNode;
@@ -91,12 +94,15 @@ public class NetworkUtil {
 		}
 
 		Map<Integer, ArrayList<Integer>> outDirectedAdjacentList = new HashMap<Integer, ArrayList<Integer>>();
+		
+		for (CyNode node : nodes) {
+			outDirectedAdjacentList.put(nodeIndexes.get(node), new ArrayList<Integer>());
+		}
+		
 		int nAdjNode = 0;
 		for (CyEdge edge : edges) {
-			if (network.getRow(edge).get("interaction", String.class).equalsIgnoreCase("directed")) {
-				if (!outDirectedAdjacentList.containsKey(nodeIndexes.get(edge.getSource()))) {
-					outDirectedAdjacentList.put(nodeIndexes.get(edge.getSource()), new ArrayList<Integer>());
-				}
+			if (network.getRow(edge).isSet("interaction")
+					&& network.getRow(edge).get("interaction", String.class).equalsIgnoreCase("directed")) {
 				outDirectedAdjacentList.get(nodeIndexes.get(edge.getSource())).add(nodeIndexes.get(edge.getTarget()));
 				nAdjNode++;
 			}
@@ -105,7 +111,7 @@ public class NetworkUtil {
 		Integer[] adjKey = outDirectedAdjacentList.keySet()
 				.toArray(new Integer[outDirectedAdjacentList.keySet().size()]);
 		if (adjKey.length == 0)
-			return new int[] {-1};
+			return new int[] { -1 };
 
 		int nNode = nodes.size();
 		int arraySize = nNode + 1 + nAdjNode;
@@ -144,16 +150,15 @@ public class NetworkUtil {
 		}
 
 		Map<Integer, ArrayList<Integer>> unDirectedAdjacentList = new HashMap<Integer, ArrayList<Integer>>();
+		
+		for (CyNode node : nodes) {
+			unDirectedAdjacentList.put(nodeIndexes.get(node), new ArrayList<Integer>());
+		}
+		
 		int nAdjNode = 0;
 		for (CyEdge edge : edges) {
-			if (!network.getRow(edge).get("interaction", String.class).equalsIgnoreCase("directed")) {
-				if (!unDirectedAdjacentList.containsKey(nodeIndexes.get(edge.getSource()))) {
-					unDirectedAdjacentList.put(nodeIndexes.get(edge.getSource()), new ArrayList<Integer>());
-				}
-				if (!unDirectedAdjacentList.containsKey(nodeIndexes.get(edge.getTarget()))) {
-					unDirectedAdjacentList.put(nodeIndexes.get(edge.getTarget()), new ArrayList<Integer>());
-				}
-
+			if (!network.getRow(edge).isSet("interaction")
+					|| !network.getRow(edge).get("interaction", String.class).equalsIgnoreCase("directed")) {
 				unDirectedAdjacentList.get(nodeIndexes.get(edge.getSource())).add(nodeIndexes.get(edge.getTarget()));
 				unDirectedAdjacentList.get(nodeIndexes.get(edge.getTarget())).add(nodeIndexes.get(edge.getSource()));
 
@@ -163,7 +168,7 @@ public class NetworkUtil {
 
 		Integer[] adjKey = unDirectedAdjacentList.keySet().toArray(new Integer[unDirectedAdjacentList.keySet().size()]);
 		if (adjKey.length == 0)
-			return new int[] {-1};
+			return new int[] { -1 };
 
 		int nNode = nodes.size();
 		int arraySize = nNode + 1 + nAdjNode;
